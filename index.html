@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>チャット</title>
+  <link rel="stylesheet" type="text/css" href="/style.css">
+</head>
+<body>
+
+  <div id="username-modal">
+    <div id="username-container">
+        <h2>ユーザー名を入力してください</h2>
+        <input type="text" id="username-input" placeholder="例: がいじしょうや">
+        <button id="username-submit">決定</button>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <div class="sidebar">
+      <h3>参加者</h3>
+      <ul id="user-list"></ul>
+    </div>
+    <div class="chat-container">
+      <ul id="messages"></ul>
+      <form id="form" action="">
+        <input type="file" id="image-input" accept="image/*, .gif" style="display: none;">
+        <button type="button" id="image-button">🖼️</button>
+        <input id="input" autocomplete="off" placeholder="メッセージを入力..." /><button>送信</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/client.js"></script>
+</body>
+</html>
