@@ -1,0 +1,50 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "public"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/login.html",
+      "dest": "/login.html"
+    },
+    {
+      "src": "/index.html",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/style.css",
+      "dest": "/style.css"
+    },
+    {
+      "src": "/client.js",
+      "dest": "/client.js"
+    },
+    {
+      "src": "/socket.io/socket.io.js",
+      "dest": "/socket.io/socket.io.js"
+    },
+    {
+      "src": "/",
+      "dest": "/login.html"
+    },
+    {
+      "src": "/login",
+      "dest": "server.js"
+    },
+    {
+      "src": "/socket.io/(.*)",
+      "dest": "server.js"
+    }
+  ]
+}
