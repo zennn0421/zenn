@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ログイン</title>
+  <link rel="stylesheet" type="text/css" href="/style.css">
+</head>
+<body>
+  <div class="login-container">
+    <h1>チャットへようこそ</h1>
+    <input type="password" id="password" placeholder="パスワード">
+    <button onclick="login()">ログイン</button>
+    <p id="error-message" class="error"></p>
+  </div>
+  <script>
+    function login() {
+      const password = document.getElementById('password').value;
+      fetch('/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Save role to sessionStorage to pass it to the chat page
+          sessionStorage.setItem('userRole', data.role);
+          window.location.href = '/index.html';
+        } else {
+          const errorMessage = document.getElementById('error-message');
+          errorMessage.innerText = 'パスワードが違います';
+        }
+      });
+    }
+    // Enterキーでログイン
+    document.getElementById('password').addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
+            login();
+        }
+    });
+  </script>
+</body>
+</html>
