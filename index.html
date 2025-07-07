@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>オンラインチャット</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f4f8;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 800px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ログイン画面のスタイル */
+        .login-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding: 40px 50px;
+            text-align: center;
+        }
+
+        .portal-header img {
+            width: 80px;
+            margin-bottom: 15px;
+        }
+
+        .portal-header h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .portal-header p {
+            color: #7f8c8d;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #dfe6e9;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .login-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .login-actions button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .login-btn {
+            background-color: #3498db;
+            color: white;
+        }
+        .login-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .admin-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .admin-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .error {
+            color: #e74c3c;
+            margin-top: 10px;
+            height: 20px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .error.show {
+            opacity: 1;
+        }
+
+        /* チャット画面のスタイル (変更なし) */
+        .chat-screen { display: none; height: 100%; flex-direction: column; }
+        .chat-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; position: relative; }
+        .chat-header.admin { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
+        .chat-header h2 { font-size: 1.5em; }
+        .logout-btn { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.2); color: white; border: none; padding: 8px 15px; border-radius: 15px; cursor: pointer; transition: all 0.3s ease; }
+        .logout-btn:hover { background: rgba(255, 255, 255, 0.3); }
+        .online-users { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); font-size: 0.9em; opacity: 0.9; }
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%); }
+        .message { margin-bottom: 15px; padding: 12px 18px; border-radius: 18px; max-width: 70%; word-wrap: break-word; animation: fadeIn 0.3s ease; }
+        .message.user { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-left: auto; border-bottom-right-radius: 5px; }
+        .message.other { background: white; color: #333; border: 1px solid #e0e0e0; border-bottom-left-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .message.admin { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; margin-left: auto; border-bottom-right-radius: 5px; }
+        .message.system { background: #f39c12; color: white; text-align: center; margin: 10px auto; border-radius: 15px; font-style: italic; max-width: 50%; }
+        .message-time { font-size: 0.8em; opacity: 0.7; margin-top: 5px; }
+        .chat-input { display: flex; padding: 20px; background: white; border-top: 1px solid #e0e0e0; gap: 10px; }
+        .chat-input input { flex: 1; padding: 15px 20px; border: 2px solid #e0e0e0; border-radius: 25px; font-size: 16px; transition: all 0.3s ease; }
+        .chat-input input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 15px rgba(102, 126, 234, 0.2); }
+        .send-btn { padding: 15px 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 25px; cursor: pointer; transition: all 0.3s ease; font-size: 16px; }
+        .send-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3); }
+        .admin-controls { display: none; padding: 10px 20px; background: #fff3cd; border-bottom: 1px solid #ffeaa7; gap: 10px; }
+        .admin-controls.show { display: flex; }
+        .admin-controls button { padding: 8px 15px; border: none; border-radius: 15px; cursor: pointer; font-size: 12px; transition: all 0.3s ease; }
+        .clear-btn { background: #e17055; color: white; }
+        .clear-btn:hover { background: #d63031; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .connection-status { position: fixed; top: 10px; right: 10px; padding: 8px 12px; border-radius: 20px; font-size: 12px; z-index: 1000; transition: all 0.3s ease; }
+        .connection-status.connected { background: #00b894; color: white; }
+        .connection-status.disconnected { background: #e17055; color: white; }
+    </style>
+</head>
+<body>
+    <div class="connection-status" id="connectionStatus">接続中...</div>
+
+    <div class="container">
+        <!-- 新しいログイン画面 -->
+        <div class="login-screen" id="loginScreen">
+            <div class="portal-header">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM3ZjhjOGQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMiAzaDYuNzZsMS44IDMuNkwxMiAzaDguNXYxOGgtMTVWM3oiPjwvcGF0aD48cGF0aCBkPSJNNiA3djExIj48L3BhdGg+PHBhdGggZD0iTTE4IDdoLTExIj48L3BhdGg+PC9zdmc+" alt="学習アイコン">
+                <h1>学習ポータル</h1>
+                <p>ユーザー名とアクセスコードを入力して、レッスンを開始してください。</p>
+            </div>
+            <div class="login-form">
+                <input type="text" id="usernameInput" placeholder="ユーザー名" maxlength="20">
+                <input type="password" id="passwordInput" placeholder="アクセスコード">
+                <div class="login-actions">
+                    <button class="login-btn" onclick="login()">学習を開始</button>
+                    <button class="admin-btn" onclick="adminLogin()">管理者</button>
+                </div>
+                <div class="error" id="errorMessage"></div>
+            </div>
+        </div>
+
+        <!-- チャット画面 (変更なし) -->
+        <div class="chat-screen" id="chatScreen">
+            <div class="chat-header" id="chatHeader">
+                <div class="online-users" id="onlineUsers">オンライン: 0人</div>
+                <h2 id="chatTitle">💬 チャットルーム</h2>
+                <button class="logout-btn" onclick="logout()">ログアウト</button>
+            </div>
+            <div class="admin-controls" id="adminControls">
+                <button class="clear-btn" onclick="clearAllMessages()">全メッセージ削除</button>
+                <span style="color: #856404; font-size: 12px;">管理者モード</span>
+            </div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input">
+                <input type="text" id="messageInput" placeholder="メッセージを入力..." maxlength="500">
+                <button class="send-btn" id="sendBtn" onclick="sendMessage()">送信</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // --- 全く同じJavaScriptコードがここに入る ---
+        let socket;
+        let currentUser = '';
+        let isAdmin = false;
+        let onlineUsersCount = 0;
+
+        // サーバー接続
+        function connectToServer() {
+            socket = io();
+            
+            socket.on('connect', () => {
+                updateConnectionStatus(true);
+            });
+
+            socket.on('disconnect', () => {
+                updateConnectionStatus(false);
+            });
+
+            socket.on('message', (data) => {
+                displayMessage(data);
+            });
+
+            socket.on('userJoined', (data) => {
+                displaySystemMessage(`${data.username}さんが参加しました`);
+                updateOnlineUsers(data.onlineCount);
+            });
+
+            socket.on('userLeft', (data) => {
+                displaySystemMessage(`${data.username}さんが退出しました`);
+                updateOnlineUsers(data.onlineCount);
+            });
+
+            socket.on('onlineUsers', (count) => {
+                updateOnlineUsers(count);
+            });
+
+            socket.on('messagesCleared', () => {
+                document.getElementById('chatMessages').innerHTML = '';
+                displaySystemMessage('管理者によってメッセージが削除されました');
+            });
+        }
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            connectToServer();
+            
+            document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+            
+            document.getElementById('messageInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        });
+
+        function login() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+
+            if (!username) {
+                showError('ユーザー名を入力してください');
+                return;
+            }
+
+            if (username.length < 2) {
+                showError('ユーザー名は2文字以上で入力してください');
+                return;
+            }
+
+            if (password !== 'zen0421') {
+                showError('アクセスコードが間違っています');
+                return;
+            }
+
+            loginSuccess(username, false);
+        }
+
+        function adminLogin() {
+            const username = document.getElementById('usernameInput').value.trim() || '管理者';
+            const password = document.getElementById('passwordInput').value;
+
+            if (password !== '0421') {
+                showError('管理者アクセスコードが間違っています');
+                return;
+            }
+
+            loginSuccess(username, true);
+        }
+
+        function loginSuccess(username, admin) {
+            currentUser = username;
+            isAdmin = admin;
+            
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('chatScreen').style.display = 'flex';
+            
+            if (admin) {
+                document.getElementById('chatHeader').classList.add('admin');
+                document.getElementById('chatTitle').textContent = '👑 管理者チャットルーム';
+                document.getElementById('adminControls').classList.add('show');
+            }
+            
+            document.getElementById('usernameInput').value = '';
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('errorMessage').classList.remove('show');
+            
+            socket.emit('userJoin', { username: currentUser, isAdmin: admin });
+            
+            document.getElementById('messageInput').focus();
+        }
+
+        function logout() {
+            socket.emit('userLeave', { username: currentUser });
+            
+            currentUser = '';
+            isAdmin = false;
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('chatScreen').style.display = 'none';
+            document.getElementById('chatHeader').classList.remove('admin');
+            document.getElementById('adminControls').classList.remove('show');
+            document.getElementById('usernameInput').focus();
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const messageText = messageInput.value.trim();
+
+            if (!messageText) return;
+
+            const messageData = {
+                username: currentUser,
+                text: messageText,
+                time: getCurrentTime(),
+                isAdmin: isAdmin
+            };
+
+            socket.emit('message', messageData);
+            messageInput.value = '';
+        }
+
+        function displayMessage(data) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            
+            let messageClass = 'message ';
+            if (data.username === currentUser) {
+                messageClass += isAdmin ? 'admin' : 'user';
+            } else {
+                messageClass += data.isAdmin ? 'admin' : 'other';
+            }
+            
+            messageDiv.className = messageClass;
+            messageDiv.innerHTML = `
+                <div><strong>${escapeHtml(data.username)}:</strong> ${escapeHtml(data.text)}</div>
+                <div class="message-time">${data.time}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function displaySystemMessage(text) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message system';
+            messageDiv.innerHTML = `
+                <div>${escapeHtml(text)}</div>
+                <div class="message-time">${getCurrentTime()}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function clearAllMessages() {
+            if (isAdmin && confirm('全てのメッセージを削除しますか？')) {
+                socket.emit('clearMessages');
+            }
+        }
+
+        function updateOnlineUsers(count) {
+            onlineUsersCount = count;
+            document.getElementById('onlineUsers').textContent = `オンライン: ${count}人`;
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            if (connected) {
+                statusElement.textContent = '接続済み';
+                statusElement.className = 'connection-status connected';
+            } else {
+                statusElement.textContent = '切断中';
+                statusElement.className = 'connection-status disconnected';
+            }
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.classList.add('show');
+            
+            setTimeout(() => {
+                errorElement.classList.remove('show');
+            }, 3000);
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString('ja-JP', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
